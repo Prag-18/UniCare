@@ -46,7 +46,19 @@ export default function Assistant({ onNavigate }) {
 
         {result && (
           <div className={`triage sev-box-${result.severity}`}>
-            <p><SeverityPill level={result.severity} /> {result.severity === 'crisis' ? 'Please reach out to someone right now.' : 'Suggested next steps'}</p>
+            <p><SeverityPill level={result.severity} /> {result.severity === 'crisis' ? 'Please reach out to someone right now.' : 'Assessment & Guidance'}</p>
+            
+            {result.recommendations?.length > 0 && (
+              <div className="recommendations-box">
+                <strong>Actionable steps for your situation:</strong>
+                <ul className="recommendations-list">
+                  {result.recommendations.map((rec, i) => (
+                    <li key={i}>{rec}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {result.helpNow?.length > 0 && (
               <ul className="helpline-list">{result.helpNow.map((h) => <li key={h.phone}><a href={`tel:${h.phone.replace(/[^0-9]/g, '')}`}>{h.phone}</a> {h.name}</li>)}</ul>
             )}
