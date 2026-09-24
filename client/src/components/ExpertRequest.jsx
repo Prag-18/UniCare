@@ -10,6 +10,12 @@ export default function ExpertRequest({ preselect, onDone }) {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => { api('/catalog').then(setCatalog).catch((e) => setError(e.message)); }, []);
+  useEffect(() => {
+    if (preselect?._id) {
+      setForm((f) => ({ ...f, catalogItem: preselect._id }));
+    }
+  }, [preselect]);
+
   const set = (k) => (e) => { setForm({ ...form, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }); setError(''); };
 
   const submit = async (e) => {

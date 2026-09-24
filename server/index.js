@@ -91,7 +91,7 @@ app.post('/api/admin/experts', auth, allow('admin'), wrap(async (req, res) => {
   const user = await User.create({
     name, email, role: 'expert', departments, expertise, bio, passwordHash: await bcrypt.hash(password, 10),
   });
-  res.status(201).json(publicUser(user));
+  res.status(201).json(publicUser(await user.populate('departments')));
 }));
 
 // ---------- AI assistant ----------
@@ -151,17 +151,25 @@ app.post('/api/tickets', auth, allow('student'), wrap(async (req, res) => {
   if (!subject || !description) return res.status(400).json({ error: 'Add a short subject and describe what you are going through.' });
   let item = catalogItem ? await CatalogItem.findById(catalogItem) : null;
   const ai = await assess([{ role: 'user', text: `${subject}. ${description}` }]);
-  if (!item) {
-    const dept = await Department.findOne({ code: ai.departmentCode });
+  let dept = null;
+  if (item) {
+    dept = await Department.findById(item.department);
+  } else {
+    dept = await Department.findOne({ code: ai.departmentCode });
+    if (!dept) dept = await Department.findOne({ code: 'CMH' }) || await Department.findOne();
     item = await CatalogItem.findOne({ department: dept?._id });
   }
+
+  const departmentId = item?.department || dept?._id;
+  if (!departmentId) return res.status(400).json({ error: 'No support department available for this request.' });
+
   // Take the more serious of the service default and the AI estimate.
   let severity = ai.severity;
   if (item && SEVERITY_RANK[item.defaultSeverity] < SEVERITY_RANK[severity]) severity = item.defaultSeverity;
   const ticket = await Ticket.create({
     student: req.user._id, anonymous, consentToShare, subject, description, severity,
-    catalogItem: item?._id, department: item.department, expertiseNeeded: item?.expertiseTags || [],
-    aiSummary: `AI estimate: ${ai.severity}. Suggested department: ${ai.departmentCode}.`,
+    catalogItem: item?._id, department: departmentId, expertiseNeeded: item?.expertiseTags || [],
+    aiSummary: `AI estimate: ${ai.severity}. Suggested department: ${dept?.code || ai.departmentCode}.`,
     status: severity === 'crisis' ? 'escalated' : 'open',
     slaDueAt: slaFor(severity),
   });
@@ -178,11 +186,11 @@ app.get('/api/tickets/mine', auth, allow('student'), wrap(async (req, res) => {
 // PRIVACY: what an expert may see depends on their relationship to the ticket.
 function expertView(t, expert) {
   const mine = idEq(t.assignedExpert, expert._id);
-  const inDept = expert.departments.some((d) => idEq(d, t.department));
+  const inDept = (expert.departments || []).some((d) => idEq(d, t.department));
   const canReadDetails = mine || inDept || t.consentToShare;
   const studentLabel = t.anonymous ? 'Anonymous student'
     : mine ? t.student?.name : `${t.student?.alias || 'Student'} (name shown after accepting)`;
-  const expertiseMatch = t.expertiseNeeded.filter((e) => expert.expertise.includes(e));
+  const expertiseMatch = (t.expertiseNeeded || []).filter((e) => (expert.expertise || []).includes(e));
   return {
     _id: t._id, subject: t.subject, severity: t.severity, status: t.status,
     department: t.department, catalogItem: t.catalogItem, expertiseNeeded: t.expertiseNeeded,
@@ -249,7 +257,9 @@ app.post('/api/tickets/:id/accept', auth, allow('expert'), wrap(async (req, res)
 app.post('/api/tickets/:id/decline', auth, allow('expert'), wrap(async (req, res) => {
   const t = await Ticket.findById(req.params.id);
   if (!t || t.status === 'resolved') return res.status(404).json({ error: 'Ticket not found.' });
-  t.declinedBy.push({ expert: req.user._id, reason: req.body.reason || 'Not the right fit', at: new Date() });
+  if (!t.declinedBy.some((d) => idEq(d.expert, req.user._id))) {
+    t.declinedBy.push({ expert: req.user._id, reason: req.body.reason || 'Not the right fit', at: new Date() });
+  }
   // If every expert in the department has declined, escalate so no one falls through the cracks.
   const deptExperts = await User.countDocuments({ role: 'expert', departments: t.department });
   if (t.declinedBy.length >= Math.max(deptExperts, 1)) t.status = 'escalated';

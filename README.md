@@ -29,16 +29,18 @@ npm run dev                 # http://localhost:5173
 
 ## Demo accounts (password: `password123`)
 
-| Role | Email | Notes |
-|---|---|---|
-| Student | student@demo.com | Has tickets and a peer chat |
-| Student | student2@demo.com | Has an anonymous ragging report |
-| Expert | expert@demo.com | Counselling & Mental Health |
-| Expert | expert2@demo.com | Academic Affairs, Career |
-| Expert | expert3@demo.com | Anti-Ragging Cell, ICC, Student Welfare |
-| Expert | expert4@demo.com | Hostel, Financial Aid, International |
-| Peer mentor | peer@demo.com | Senior who cleared backlogs |
-| Admin | admin@demo.com | Adds departments, services, experts |
+| Role | Email | Alias / Name | Notes |
+|---|---|---|---|
+| Student | student@demo.com | Quiet Heron (Aarav Sharma) | Primary demo student with active tickets & peer chat |
+| Student | student2@demo.com | Bright Lotus (Diya Menon) | Has anonymous ragging & financial aid reports |
+| Expert | expert@demo.com | Dr. Kavya Iyer | Counselling & Mental Health |
+| Expert | expert2@demo.com | Prof. Rahul Verma | Academic Affairs, Career & Placement |
+| Expert | expert3@demo.com | Ms. Sneha Pillai | Anti-Ragging Cell, ICC, Student Welfare |
+| Expert | expert4@demo.com | Mr. Arjun Nair | Hostel, Financial Aid, International |
+| Peer mentor | peer@demo.com | Steady Banyan (Rohan Gupta) | Senior who cleared 3 backlogs (Exam stress) |
+| Peer mentor | peer2@demo.com | Warm Monsoon (Meera Joshi) | First-gen senior (Homesickness & 1st year) |
+| Peer mentor | peer3@demo.com | Brave Kestrel (Kabir Singh) | Alumnus SDE (Placement anxiety) |
+| Admin | admin@demo.com | Admin | Adds departments, services, experts, approves stories |
 
 ## What's in it
 

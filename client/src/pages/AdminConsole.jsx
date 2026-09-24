@@ -35,7 +35,13 @@ export default function AdminConsole() {
             <label>Description<input value={dept.description} onChange={(e) => setDept({ ...dept, description: e.target.value })} /></label>
             <button className="btn primary">Add department</button>
           </form>
-          <form className="card form" onSubmit={(e) => { e.preventDefault(); run(() => api('/admin/catalog', { method: 'POST', body: { ...item, expertiseTags: tags(item.expertiseTags) } }), `Added ${item.name} to the catalog.`); }}>
+          <form className="card form" onSubmit={(e) => {
+            e.preventDefault();
+            run(async () => {
+              await api('/admin/catalog', { method: 'POST', body: { ...item, expertiseTags: tags(item.expertiseTags) } });
+              setItem({ name: '', department: '', description: '', expertiseTags: '', defaultSeverity: 'moderate' });
+            }, `Added ${item.name} to the catalog.`);
+          }}>
             <h2>Add a service to the catalog</h2>
             <label>Service name<input value={item.name} onChange={(e) => setItem({ ...item, name: e.target.value })} /></label>
             <label>Department
@@ -53,7 +59,13 @@ export default function AdminConsole() {
             </label>
             <button className="btn primary">Add service</button>
           </form>
-          <form className="card form" onSubmit={(e) => { e.preventDefault(); run(() => api('/admin/experts', { method: 'POST', body: { ...expert, departments: expert.departments ? [expert.departments] : [], expertise: tags(expert.expertise) } }), `Added ${expert.name}. Temporary password: password123`); }}>
+          <form className="card form" onSubmit={(e) => {
+            e.preventDefault();
+            run(async () => {
+              await api('/admin/experts', { method: 'POST', body: { ...expert, departments: expert.departments ? [expert.departments] : [], expertise: tags(expert.expertise) } });
+              setExpert({ name: '', email: '', departments: '', expertise: '' });
+            }, `Added ${expert.name}. Temporary password: password123`);
+          }}>
             <h2>Add an expert</h2>
             <label>Name<input value={expert.name} onChange={(e) => setExpert({ ...expert, name: e.target.value })} /></label>
             <label>Email<input type="email" value={expert.email} onChange={(e) => setExpert({ ...expert, email: e.target.value })} /></label>
